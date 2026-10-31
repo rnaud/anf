@@ -45,7 +45,7 @@ DNS is managed with **Gandi LiveDNS**. The web records are:
 | `@` | `AAAA` | `2606:50c0:8000::153`, `2606:50c0:8001::153`, `2606:50c0:8002::153`, `2606:50c0:8003::153` | 300 |
 | `www` | `CNAME` | `rnaud.github.io.` | 300 |
 
-GitHub Pages owns TLS certificate issuance and redirects `www.anf.io` to `anf.io`. Keep Enforce HTTPS enabled in Pages settings. Existing mail, SPF, and other subdomain records are independent of this website and were preserved. A Gandi DNS backup was requested before the October 31, 2026 update.
+GitHub Pages owns TLS certificate issuance and redirects `www.anf.io` to `anf.io`. Keep Enforce HTTPS enabled in Pages settings. Existing mail, SPF, and other subdomain records are independent of this website and were preserved. The pre-change Gandi backup is the manual snapshot **2026-10-31 #1**, verified in Gandi’s restore list.
 
 See [GitHub’s custom-domain documentation](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site) for current DNS values.
 
