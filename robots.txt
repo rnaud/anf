@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://anf.io/sitemap.xml
