@@ -1,8 +1,18 @@
 # anf.io
 
-Arnaud’s collection of games, tools, and little escapes: **[anf.io](https://anf.io/)**.
+Arnaud’s personal website: **[anf.io](https://anf.io/)**.
 
 The site is plain HTML and CSS, with local WebP artwork. No installation, build step, JavaScript, analytics, cookies, or third-party runtime resources are required.
+
+## Pages
+
+- `/` — minimal introduction.
+- `/about/` — short bio and verified GitHub / LinkedIn links.
+- `/stuff/` — the six-project collection.
+
+All pages share `styles.css` and the Home / About / Stuff navigation.
+
+About-page facts were checked against [Arnaud’s public GitHub profile](https://github.com/rnaud), [LinkedIn](https://www.linkedin.com/in/arnaudferreri), and [Headway’s introduction](https://headway.co/blog/arnaud-joins-as-cto).
 
 ## Projects
 
@@ -15,7 +25,7 @@ The site is plain HTML and CSS, with local WebP artwork. No installation, build 
 | Little Worlds | https://rnaud.github.io/little-worlds/ |
 | Alexandria | https://alexandria.my/ |
 
-Edit the project links, text, and accessibility labels in `index.html`. Visual styling and responsive breakpoints live in `styles.css`.
+Edit the project links, text, and accessibility labels in `stuff/index.html`. Visual styling and responsive breakpoints live in `styles.css`.
 
 ## Preview
 
@@ -30,7 +40,7 @@ Open http://127.0.0.1:8766/. Check desktop, tablet, and phone layouts, keyboard 
 GitHub Pages serves the repository’s **`master` branch, `/` root**. Push a commit to `master` to publish. `CNAME` retains the custom domain and `.nojekyll` keeps the site a static deployment. The historical `gh-pages` branch is retained as an archive of the previous site.
 
 ```sh
-git add index.html styles.css assets
+git add index.html about stuff styles.css assets
 git commit -m "Update the project collection"
 git push origin master
 ```
@@ -61,6 +71,7 @@ The thumbnails reuse artwork from the projects, resized and encoded locally:
 - `rez-hyrule-gameplay.webp`: REZ: HYRULE’s gameplay screenshot (`screenshots/gameplay.png`).
 - `little-worlds.webp`: the Banana Meadows cartridge preview from the live Little Worlds arcade, preserved at its native pixel-art resolution.
 - `alexandria.webp`: Alexandria’s library screenshot (`website/public/alexandria-library.png`).
+- `social-intro.jpg`: a minimal sharing card for the Home and About pages.
 - `social.jpg`: a 1200 × 630 sharing card composed from this site’s typography and the six thumbnails.
 
 The first three images are project artwork, not gameplay screenshots. REZ: HYRULE is an unofficial fan tribute, unaffiliated with Nintendo or Sega.
