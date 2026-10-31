@@ -1,6 +1,6 @@
 # anf.io
 
-Arnaud’s collection of playable worlds: **[anf.io](https://anf.io/)**.
+Arnaud’s collection of games, tools, and little escapes: **[anf.io](https://anf.io/)**.
 
 The site is plain HTML and CSS, with local WebP artwork. No installation, build step, JavaScript, analytics, cookies, or third-party runtime resources are required.
 
@@ -12,6 +12,8 @@ The site is plain HTML and CSS, with local WebP artwork. No installation, build 
 | Hiraeth | https://hiraeth.my/ |
 | OpenKart | https://rnaud.github.io/openkart/ |
 | REZ: HYRULE | https://rnaud.github.io/rez-hyrule/ |
+| Little Worlds | https://rnaud.github.io/little-worlds/ |
+| Alexandria | https://alexandria.my/ |
 
 Edit the project links, text, and accessibility labels in `index.html`. Visual styling and responsive breakpoints live in `styles.css`.
 
@@ -21,7 +23,7 @@ Edit the project links, text, and accessibility labels in `index.html`. Visual s
 python3 -m http.server 8766 --bind 127.0.0.1
 ```
 
-Open http://127.0.0.1:8766/. Check desktop, tablet, and phone layouts, keyboard focus, and the four outgoing project links before publishing.
+Open http://127.0.0.1:8766/. Check desktop, tablet, and phone layouts, keyboard focus, and the six outgoing project links before publishing.
 
 ## Publish
 
@@ -57,6 +59,8 @@ The thumbnails reuse artwork from the projects, resized and encoded locally:
 - `hiraeth.webp`: Hiraeth’s desert title artwork (`references/Title Screen/A4-desert.jpg`).
 - `openkart-nyc.webp`: OpenKart’s New York Rush track reference (`assets/levels/newyork.jpg`).
 - `rez-hyrule-gameplay.webp`: REZ: HYRULE’s gameplay screenshot (`screenshots/gameplay.png`).
-- `social.jpg`: a 1200 × 630 sharing card composed from this site’s typography and the four thumbnails.
+- `little-worlds.webp`: the Banana Meadows cartridge preview from the live Little Worlds arcade, preserved at its native pixel-art resolution.
+- `alexandria.webp`: Alexandria’s library screenshot (`website/public/alexandria-library.png`).
+- `social.jpg`: a 1200 × 630 sharing card composed from this site’s typography and the six thumbnails.
 
 The first three images are project artwork, not gameplay screenshots. REZ: HYRULE is an unofficial fan tribute, unaffiliated with Nintendo or Sega.
