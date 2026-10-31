@@ -55,8 +55,8 @@ The thumbnails reuse artwork from the projects, resized and encoded locally:
 
 - `feels.webp`: feels’ selected home illustration (`public/references/midjourney/home.png`).
 - `hiraeth.webp`: Hiraeth’s desert title artwork (`references/Title Screen/A4-desert.jpg`).
-- `openkart.webp`: OpenKart’s garden menu artwork (`assets/ui/storybook-garden.webp`).
-- `rez-hyrule.webp`: REZ: HYRULE’s title screenshot (`screenshots/title.png`).
+- `openkart-nyc.webp`: OpenKart’s New York Rush track reference (`assets/levels/newyork.jpg`).
+- `rez-hyrule-gameplay.webp`: REZ: HYRULE’s gameplay screenshot (`screenshots/gameplay.png`).
 - `social.jpg`: a 1200 × 630 sharing card composed from this site’s typography and the four thumbnails.
 
 The first three images are project artwork, not gameplay screenshots. REZ: HYRULE is an unofficial fan tribute, unaffiliated with Nintendo or Sega.
