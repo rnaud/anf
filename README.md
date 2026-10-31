@@ -2,7 +2,9 @@
 
 Arnaud’s personal website: **[anf.io](https://anf.io/)**.
 
-The site is plain HTML and CSS, with local WebP artwork. No installation, build step, JavaScript, analytics, cookies, or third-party runtime resources are required.
+The site uses plain HTML and CSS, local WebP artwork, and a subtle Three.js code-wave background. No installation or build step is required. All runtime assets are served locally; there are no analytics or cookies.
+
+`background.js` renders a grayscale glyph field with pointer parallax. It caps rendering at 30 fps, pauses in hidden tabs, respects reduced-motion preferences, and leaves the content usable without WebGL. Three.js 0.187.0 and its MIT license are vendored in `assets/vendor/three/`.
 
 ## Pages
 
