@@ -9,12 +9,11 @@ The site uses plain HTML and CSS, local WebP artwork, and a subtle Three.js code
 ## Pages
 
 - `/` — minimal introduction.
-- `/about/` — short bio and verified GitHub / LinkedIn links.
+- `/about/` — GitHub and LinkedIn links.
 - `/stuff/` — the six-project collection.
 
 All pages share `styles.css` and the Home / About / Stuff navigation.
 
-About-page facts were checked against [Arnaud’s public GitHub profile](https://github.com/rnaud), [LinkedIn](https://www.linkedin.com/in/arnaudferreri), and [Headway’s introduction](https://headway.co/blog/arnaud-joins-as-cto).
 
 ## Projects
 
