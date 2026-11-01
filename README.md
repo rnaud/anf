@@ -10,7 +10,7 @@ The site uses plain HTML and CSS, local WebP artwork, and a subtle Three.js code
 
 - `/` — minimal introduction.
 - `/about/` — GitHub and LinkedIn links.
-- `/stuff/` — the six-project collection.
+- `/stuff/` — the seven-project collection.
 
 All pages share `styles.css` and the Home / About / Stuff navigation.
 
@@ -25,6 +25,7 @@ All pages share `styles.css` and the Home / About / Stuff navigation.
 | REZ: HYRULE | https://rnaud.github.io/rez-hyrule/ |
 | Little Worlds | https://rnaud.github.io/little-worlds/ |
 | Alexandria | https://alexandria.my/ |
+| Herochess | https://rnaud.github.io/herochess/ |
 
 Edit the project links, text, and accessibility labels in `stuff/index.html`. Visual styling and responsive breakpoints live in `styles.css`.
 
@@ -34,7 +35,7 @@ Edit the project links, text, and accessibility labels in `stuff/index.html`. Vi
 python3 -m http.server 8766 --bind 127.0.0.1
 ```
 
-Open http://127.0.0.1:8766/. Check desktop, tablet, and phone layouts, keyboard focus, and the six outgoing project links before publishing.
+Open http://127.0.0.1:8766/. Check desktop, tablet, and phone layouts, keyboard focus, and the seven outgoing project links before publishing.
 
 ## Publish
 
@@ -72,6 +73,7 @@ The thumbnails reuse artwork from the projects, resized and encoded locally:
 - `rez-hyrule-gameplay.webp`: REZ: HYRULE’s gameplay screenshot (`screenshots/gameplay.png`).
 - `little-worlds.webp`: the Banana Meadows cartridge preview from the live Little Worlds arcade, preserved at its native pixel-art resolution.
 - `alexandria.webp`: Alexandria’s library screenshot (`website/public/alexandria-library.png`).
+- `herochess.webp`: Herochess’s implemented Arcana Table interface (`art-direction/interface-implemented-v3.png`).
 - `social-intro.jpg`: a minimal sharing card for the Home and About pages.
 - `social.jpg`: a 1200 × 630 sharing card composed from this site’s typography and the six thumbnails.
 
