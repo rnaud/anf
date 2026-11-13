@@ -10,7 +10,7 @@ The site uses plain HTML and CSS, local WebP artwork, and a subtle Three.js code
 
 - `/` — minimal introduction.
 - `/about/` — GitHub and LinkedIn links.
-- `/stuff/` — the seven-project collection.
+- `/stuff/` — the ten-project collection.
 
 All pages share `styles.css` and the Home / About / Stuff navigation.
 
@@ -19,6 +19,9 @@ All pages share `styles.css` and the Home / About / Stuff navigation.
 
 | Project | Destination |
 | --- | --- |
+| Pocket Siege | https://rnaud.github.io/pocket-siege/ |
+| Jumpman | https://github.com/rnaud/jumpman |
+| Dust Valley | https://rnaud.github.io/dust-valley-motocross/ |
 | feels | https://rnaud.github.io/feels/ |
 | Hiraeth | https://hiraeth.my/ |
 | OpenKart | https://rnaud.github.io/openkart/ |
@@ -35,7 +38,7 @@ Edit the project links, text, and accessibility labels in `stuff/index.html`. Vi
 python3 -m http.server 8766 --bind 127.0.0.1
 ```
 
-Open http://127.0.0.1:8766/. Check desktop, tablet, and phone layouts, keyboard focus, and the seven outgoing project links before publishing.
+Open http://127.0.0.1:8766/. Check desktop, tablet, and phone layouts, keyboard focus, and the ten outgoing project links before publishing.
 
 ## Publish
 
@@ -67,6 +70,9 @@ See [GitHub’s custom-domain documentation](https://docs.github.com/en/pages/co
 
 The thumbnails reuse artwork from the projects, resized and encoded locally:
 
+- `pocket-siege.webp`: Pocket Siege’s pixel-art battlefield (`docs/art-direction/implemented-polish.png`).
+- `jumpman.webp`: Jumpman’s title screen (`docs/menu-v3/title.png`).
+- `dust-valley.webp`: Dust Valley’s menu artwork (`src/assets/menu-hero.webp`).
 - `feels.webp`: feels’ selected home illustration (`public/references/midjourney/home.png`).
 - `hiraeth.webp`: Hiraeth’s desert title artwork (`references/Title Screen/A4-desert.jpg`).
 - `openkart-nyc.webp`: OpenKart’s New York Rush track reference (`assets/levels/newyork.jpg`).
@@ -77,4 +83,4 @@ The thumbnails reuse artwork from the projects, resized and encoded locally:
 - `social-intro.jpg`: a minimal sharing card for the Home and About pages.
 - `social.jpg`: a 1200 × 630 sharing card composed from this site’s typography and the six thumbnails.
 
-The first three images are project artwork, not gameplay screenshots. REZ: HYRULE is an unofficial fan tribute, unaffiliated with Nintendo or Sega.
+The feels, Hiraeth, OpenKart, and Dust Valley images are project artwork, not gameplay screenshots. REZ: HYRULE is an unofficial fan tribute, unaffiliated with Nintendo or Sega.
