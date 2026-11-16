@@ -71,6 +71,7 @@ public class MainActivity extends Activity {
         File current=store.current(g.id);boolean ready=current!=null;
         String label=ready?"Downloaded · ready offline":(g.download.isEmpty()?"Package not published yet":String.format(Locale.US,"Download · %.1f MB",g.bytes/1048576.0));
         card.addView(text(label,12,muted));
+        if(g.fileCount>0)card.addView(text(String.format(Locale.US,"Complete game · %d files · %.1f MB installed",g.fileCount,g.expandedBytes/1048576.0),12,muted));
         if(ready){Button play=button("Play",()->startActivity(new Intent(this,PlayerActivity.class).putExtra("id",g.id).putExtra("title",g.title)));play.setEnabled(!busy.equals(g.id));card.addView(play);}
         if(!g.download.isEmpty()&&(!ready||!current.getName().equals(g.hash))){
             Button get=button(ready?"Download update":"Download game",()->download(g));get.setEnabled(busy.isEmpty());card.addView(get);
@@ -97,7 +98,7 @@ public class MainActivity extends Activity {
         task=worker.submit(()->{
             File zip=new File(getCacheDir(),g.id+".zip.part");
             try{
-                if(getFilesDir().getUsableSpace()<g.bytes*3)throw new IOException("Not enough free storage for this download");
+                if(getFilesDir().getUsableSpace()<g.bytes+(g.expandedBytes>0?g.expandedBytes:g.bytes*2)+16*1024*1024)throw new IOException("Not enough free storage for this download");
                 long[] last={0};
                 try(OutputStream out=new FileOutputStream(zip)) { Network.copy(g.download,out,g.bytes,n->{long now=System.currentTimeMillis();if(now-last[0]>350){last[0]=now;runOnUiThread(()->status.setText("Downloading "+g.title+" · "+(n*100/g.bytes)+"%"));}}); }
                 if(zip.length()!=g.bytes)throw new IOException("Incomplete download. Please retry.");

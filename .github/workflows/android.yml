@@ -33,6 +33,8 @@ jobs:
         with:
           python-version: '3.12'
       - uses: gradle/actions/setup-gradle@v4
+      - name: Test package manifests
+        run: python3 -m unittest discover -s android/tools -p 'test_*.py'
       - name: Build downloadable games
         if: github.event_name == 'workflow_dispatch'
         run: python3 android/tools/package-games.py --bundle-catalog
@@ -67,5 +69,5 @@ jobs:
           cp android/app/build/outputs/apk/release/app-release.apk android/packages/anf-games.apk
           gh release view game-library || gh release create game-library --title 'anf games for Android' --notes 'Install anf-games.apk. Browser games download inside the app. Jumpman and Alexandria open separately.'
           # Upload immutable packages first; the catalog is the last file switched.
-          gh release upload game-library android/packages/*.zip android/packages/anf-games.apk --clobber
+          gh release upload game-library android/packages/*.zip android/packages/*.manifest.json android/packages/anf-games.apk --clobber
           gh release upload game-library android/packages/catalog.json --clobber

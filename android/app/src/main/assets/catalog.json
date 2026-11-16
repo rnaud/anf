@@ -9,10 +9,13 @@
       "repo": "pocket-siege",
       "kind": "web",
       "website": "https://rnaud.github.io/pocket-siege/",
-      "sha256": "95696baa9bb15d1a37565537a557dc71d1234b60b688d8ef7131115943bc033a",
-      "bytes": 111023089,
+      "sha256": "0871762d72d19161cd017a46d99cf3aaf29b0e79f687025c4147e873a4028400",
+      "bytes": 111311232,
       "revision": "a172020a325d612bdda3f58bb866ff65ce23cbd6",
-      "download": "https://github.com/rnaud/anf/releases/download/game-library/pocket-siege-95696baa9bb15d1a.zip"
+      "download": "https://github.com/rnaud/anf/releases/download/game-library/pocket-siege-0871762d72d19161.zip",
+      "manifest": "https://github.com/rnaud/anf/releases/download/game-library/pocket-siege-0871762d72d19161.manifest.json",
+      "fileCount": 5953,
+      "expandedBytes": 134259293
     },
     {
       "id": "jumpman",
@@ -32,10 +35,13 @@
       "repo": "dust-valley-motocross",
       "kind": "web",
       "website": "https://rnaud.github.io/dust-valley-motocross/",
-      "sha256": "f8f0afbf591a4d0bb16a687b208884390130e64ce749727e1fe104d520ed6554",
-      "bytes": 1394814,
+      "sha256": "28cfc961a1e73090ee5f1fe1ff7f5c9555a3bcecd453d2969cb948103d5e574c",
+      "bytes": 1395511,
       "revision": "76b59bbec6e53df34a8957e24ac2c1b36697fe15",
-      "download": "https://github.com/rnaud/anf/releases/download/game-library/dust-valley-f8f0afbf591a4d0b.zip"
+      "download": "https://github.com/rnaud/anf/releases/download/game-library/dust-valley-28cfc961a1e73090.zip",
+      "manifest": "https://github.com/rnaud/anf/releases/download/game-library/dust-valley-28cfc961a1e73090.manifest.json",
+      "fileCount": 7,
+      "expandedBytes": 1905850
     },
     {
       "id": "feels",
@@ -45,10 +51,13 @@
       "repo": "feels",
       "kind": "web",
       "website": "https://rnaud.github.io/feels/",
-      "sha256": "40192300054c46c7e1b6c5faa0e155586def6840cf1452ccbe24ecb1a4650342",
-      "bytes": 12647817,
+      "sha256": "81c9d76002e5b8e02649ee2901cc8367bd92c1f404fa7801a6d7737ef39ae6ad",
+      "bytes": 12649158,
       "revision": "220544a7281f0f8f615cb488fa0b8e6bc785e6b4",
-      "download": "https://github.com/rnaud/anf/releases/download/game-library/feels-40192300054c46c7.zip"
+      "download": "https://github.com/rnaud/anf/releases/download/game-library/feels-81c9d76002e5b8e0.zip",
+      "manifest": "https://github.com/rnaud/anf/releases/download/game-library/feels-81c9d76002e5b8e0.manifest.json",
+      "fileCount": 19,
+      "expandedBytes": 13466756
     },
     {
       "id": "hiraeth",
@@ -58,10 +67,13 @@
       "repo": "hiraeth",
       "kind": "web",
       "website": "https://hiraeth.my/",
-      "sha256": "55ce07948448a239e592fa9c7930266e4f4ef6444372c3d1eea00c84320fc0f3",
-      "bytes": 173797934,
+      "sha256": "c52d570f2e256e5b141ce8d910e6db75cf1a010307a4393f082c02d0726cb6cb",
+      "bytes": 173839603,
       "revision": "e83289df62945b4065cf687ba36ce22f060bdb53",
-      "download": "https://github.com/rnaud/anf/releases/download/game-library/hiraeth-55ce07948448a239.zip"
+      "download": "https://github.com/rnaud/anf/releases/download/game-library/hiraeth-c52d570f2e256e5b.zip",
+      "manifest": "https://github.com/rnaud/anf/releases/download/game-library/hiraeth-c52d570f2e256e5b.manifest.json",
+      "fileCount": 737,
+      "expandedBytes": 218172459
     },
     {
       "id": "openkart",
@@ -71,10 +83,13 @@
       "repo": "openkart",
       "kind": "web",
       "website": "https://rnaud.github.io/openkart/",
-      "sha256": "10f1b223d3ca9b3575e57b76a5fbd373dfaaca09a229500493d2fc7309aa2548",
-      "bytes": 192567547,
+      "sha256": "d0bd1efef0b5d309da8de60a9cc9da8b861d212f539cbb0bd890b450d29917ee",
+      "bytes": 192610123,
       "revision": "4f777ac1457ddcf0eafde5af983b39f98f393497",
-      "download": "https://github.com/rnaud/anf/releases/download/game-library/openkart-10f1b223d3ca9b35.zip"
+      "download": "https://github.com/rnaud/anf/releases/download/game-library/openkart-d0bd1efef0b5d309.zip",
+      "manifest": "https://github.com/rnaud/anf/releases/download/game-library/openkart-d0bd1efef0b5d309.manifest.json",
+      "fileCount": 822,
+      "expandedBytes": 220692971
     },
     {
       "id": "rez",
@@ -84,10 +99,13 @@
       "repo": "rez-hyrule",
       "kind": "web",
       "website": "https://rnaud.github.io/rez-hyrule/",
-      "sha256": "0da561cea3dd438f364fc35fa7c42ac3ad9bb3cbab88a36304c3fbecffd7b6b1",
-      "bytes": 783887,
+      "sha256": "ee2359daf08fbdf6ed1a576c1f1a25730b28b891aa9412e5a4eada37d22f1ec0",
+      "bytes": 785110,
       "revision": "4f6af13e758c97830499180612292128f0802c92",
-      "download": "https://github.com/rnaud/anf/releases/download/game-library/rez-0da561cea3dd438f.zip"
+      "download": "https://github.com/rnaud/anf/releases/download/game-library/rez-ee2359daf08fbdf6.zip",
+      "manifest": "https://github.com/rnaud/anf/releases/download/game-library/rez-ee2359daf08fbdf6.manifest.json",
+      "fileCount": 17,
+      "expandedBytes": 1416670
     },
     {
       "id": "little-worlds",
@@ -97,10 +115,13 @@
       "repo": "little-worlds",
       "kind": "web",
       "website": "https://rnaud.github.io/little-worlds/",
-      "sha256": "b2c447aa46ab5e815428237cad5e11de0583be648bff3ee8cfd5a103183cb2f8",
-      "bytes": 1846396,
+      "sha256": "9d297500cb9cce6be79c7fa0645319f345897c5aee55b7cfdf3d96cb7aa07148",
+      "bytes": 1847575,
       "revision": "f5319315b0b39f4e33e42fb6fcbf6b1dbcdcf262",
-      "download": "https://github.com/rnaud/anf/releases/download/game-library/little-worlds-b2c447aa46ab5e81.zip"
+      "download": "https://github.com/rnaud/anf/releases/download/game-library/little-worlds-9d297500cb9cce6b.zip",
+      "manifest": "https://github.com/rnaud/anf/releases/download/game-library/little-worlds-9d297500cb9cce6b.manifest.json",
+      "fileCount": 16,
+      "expandedBytes": 2442045
     },
     {
       "id": "alexandria",
@@ -120,10 +141,13 @@
       "repo": "herochess",
       "kind": "web",
       "website": "https://rnaud.github.io/herochess/",
-      "sha256": "8a0c0810a61c3f50a6afd88f2f758469b4fd8a19a4d373c5a869475824bb1382",
-      "bytes": 2966928,
+      "sha256": "ef364525de46c3c702d1657fc4a7095a6853c6eafe84017aed3efe4141046174",
+      "bytes": 2971351,
       "revision": "3b256c02536b6d7e6b9baf245df2dde841a00190",
-      "download": "https://github.com/rnaud/anf/releases/download/game-library/herochess-8a0c0810a61c3f50.zip"
+      "download": "https://github.com/rnaud/anf/releases/download/game-library/herochess-ef364525de46c3c7.zip",
+      "manifest": "https://github.com/rnaud/anf/releases/download/game-library/herochess-ef364525de46c3c7.manifest.json",
+      "fileCount": 81,
+      "expandedBytes": 3523306
     }
   ]
 }

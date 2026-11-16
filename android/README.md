@@ -27,7 +27,7 @@ python3 android/tools/package-games.py --local /path/to/projects --bundle-catalo
 
 The script uses temporary checkouts, builds Vite projects with root-relative paths, and packages OpenKart's static runtime files. Hiraeth uses its public build. It never modifies the game sources. Native apps and ROM data are not packaged. Missing local repositories are cloned from `rnaud` on GitHub. `--only dust-valley` builds a single game for development.
 
-Outputs are in `android/packages/`: eight content-addressed ZIPs and `catalog.json`. `--bundle-catalog` also updates the app's initial catalog with package sizes, commit IDs, HTTPS download URLs and SHA-256 hashes. Rebuild the APK afterward.
+Outputs are in `android/packages/`: eight content-addressed ZIPs, a matching `.manifest.json` for each game, and `catalog.json`. Every ZIP also contains `package-manifest.json`: the complete built file inventory with paths, byte sizes, and SHA-256 hashes. The inventory excludes only itself to avoid a recursive hash. The build rejects missing, extra, duplicate, or corrupt files. These are Android download manifests; website install metadata (`manifest.webmanifest`) and service-worker caching are separate. `--bundle-catalog` also updates the app's initial catalog with download and installed sizes, file counts, commit IDs, HTTPS package/manifest URLs and SHA-256 hashes. Rebuild the APK afterward.
 
 For local testing before publication, transfer a ZIP to the device's Downloads folder, then use **Import game ZIP** on its card. The file must match the bundled catalog's size and SHA-256. No broad storage permission is needed. The online Download buttons work after the release assets are published.
 
@@ -43,6 +43,16 @@ Publishing requires a stable signing key in repository secrets:
 The release build intentionally has no debug-signing fallback. Keep the key for future updates. For a local signed build, set `ANF_KEYSTORE` to its path and `ANF_KEYSTORE_PASSWORD`, then run `./gradlew assembleRelease`. Never commit the key.
 
 Packages upload before the catalog changes, and old content-addressed packages remain available for installed catalogs. **Check for game updates** fetches the release catalog; the app's existing catalog and downloads remain available if that request fails. Publishing the Android release does not publish the website.
+
+## Package verification
+
+```sh
+python3 -m unittest discover -s android/tools -p 'test_*.py'
+```
+
+Use `--repack-existing android/packages --output android/packages-new --bundle-catalog` to add inventories to previously published ZIPs without upgrading the game code. Existing ZIP checksums are verified first. A package inventory proves what was built and downloaded; it does not prove that every possible game mode has been played through.
+
+Dust Valley intentionally has a small package: its seven runtime files total 1,905,850 bytes before ZIP compression. Four WebP images plus the bundled JavaScript, CSS and HTML are the full build. The terrain, bike, scenery and audio are generated in code; it has no separate model or audio downloads. Google Fonts is an optional online stylesheet with local font fallbacks.
 
 ## Runtime behavior
 
@@ -60,4 +70,4 @@ Packages upload before the catalog changes, and old content-addressed packages r
 
 The WebView local-content approach follows [Android's local content guidance](https://developer.android.com/develop/ui/views/layout/webapps/load-local-content), using per-game HTTPS request interception instead of permissive `file://` access.
 
-Initial verification: all eight packaged games loaded with external requests blocked in Chromium; no uncaught JavaScript errors or missing local startup assets. Dust Valley was imported through Android’s file picker and launched in the emulator with connectivity disabled. Full playthroughs and physical-device performance remain unverified.
+Initial verification: all eight packaged games loaded with external requests blocked in Chromium; no uncaught JavaScript errors or missing local startup assets. Dust Valley was imported through Android’s file picker and launched in the emulator with connectivity disabled. Its race and free-ride modes were also exercised with network requests blocked in Chromium, and a fresh build matched all seven published game files byte for byte. Full playthroughs and physical-device performance remain unverified.

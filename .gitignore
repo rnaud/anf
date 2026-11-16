@@ -3,5 +3,6 @@
 android/.gradle/
 android/**/build/
 android/local.properties
-android/packages/
+android/packages*/
+__pycache__/
 *.keystore
