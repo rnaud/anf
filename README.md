@@ -84,3 +84,7 @@ The thumbnails reuse artwork from the projects, resized and encoded locally:
 - `social.jpg`: a 1200 × 630 sharing card composed from this site’s typography and the six thumbnails.
 
 The feels, Hiraeth, OpenKart, and Dust Valley images are project artwork, not gameplay screenshots. REZ: HYRULE is an unofficial fan tribute, unaffiliated with Nintendo or Sega.
+
+## Android game library
+
+[`android/`](android/README.md) contains **anf games**, a native Android library that downloads browser games for offline play and opens Jumpman and Alexandria as separate Android apps. It includes an APK build, verified game-package installer, package builder, tests, and a manual release workflow. [Download the Android APK](https://github.com/rnaud/anf/releases/download/game-library/anf-games.apk). See its README for build and publishing instructions.

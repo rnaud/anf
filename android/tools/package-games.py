@@ -1,0 +1,81 @@
+#!/usr/bin/env python3
+"""Build immutable web-game ZIPs + catalog from clean Git checkouts. Never edits source repos."""
+import argparse, hashlib, json, os, shutil, subprocess, tempfile, zipfile
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+CATALOG = ROOT / 'android/app/src/main/assets/catalog.json'
+
+def run(args, cwd, **kwargs):
+    subprocess.run(args, cwd=cwd, check=True, **kwargs)
+
+def package(source, output):
+    if not (source / 'index.html').is_file():
+        raise ValueError(f'Missing index.html in {source}')
+    with zipfile.ZipFile(output, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=6) as archive:
+        for p in sorted(source.rglob('*')):
+            if p.is_symlink():
+                raise ValueError(f'Symlink in package: {p}')
+            if p.is_file():
+                rel = p.relative_to(source)
+                if any(part.startswith('.') for part in rel.parts):
+                    continue
+                info = zipfile.ZipInfo(str(rel), date_time=(2020, 1, 1, 0, 0, 0))
+                info.compress_type = zipfile.ZIP_DEFLATED
+                with p.open('rb') as inp, archive.open(info, 'w') as out:
+                    shutil.copyfileobj(inp, out)
+    if output.stat().st_size > 1500 * 1024**2:
+        raise ValueError(f'{output.name} exceeds Android download limit')
+    with zipfile.ZipFile(output) as z:
+        if sum(i.file_size for i in z.infolist()) > 3 * 1024**3:
+            raise ValueError(f'{output.name} exceeds Android extraction limit')
+    digest = hashlib.sha256()
+    with output.open('rb') as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b''):
+            digest.update(block)
+    return digest.hexdigest()
+
+def main():
+    p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--local',type=Path,help='Use clean HEAD snapshots from sibling repos; missing repos are cloned')
+    p.add_argument('--output',type=Path,default=ROOT/'android/packages')
+    p.add_argument('--only',nargs='+',help='Build selected game IDs for development')
+    p.add_argument('--bundle-catalog',action='store_true',help='Also put generated catalog into the APK assets')
+    args=p.parse_args(); args.output.mkdir(parents=True,exist_ok=True)
+    catalog=json.loads(CATALOG.read_text())
+    for game in catalog['games']:
+        if game['kind']!='web' or (args.only and game['id'] not in args.only):continue
+        with tempfile.TemporaryDirectory(prefix='anf-package-') as tmp:
+            src=Path(tmp)/'source';src.mkdir(); local=args.local/game['repo'] if args.local else None
+            if local and (local/'.git').exists():
+                snapshot=Path(tmp)/'source.tar'
+                run(['git','archive','--format=tar',f'--output={snapshot}','HEAD'],local)
+                run(['tar','-xf',str(snapshot),'-C',str(src)],src)
+                revision=subprocess.check_output(['git','rev-parse','HEAD'],cwd=local,text=True).strip()
+                if (local/'node_modules').exists(): (src/'node_modules').symlink_to((local/'node_modules').resolve(),target_is_directory=True)
+            else:
+                run(['git','clone','--depth=1',f'https://github.com/rnaud/{game["repo"]}.git',str(src)],Path(tmp))
+                revision=subprocess.check_output(['git','rev-parse','HEAD'],cwd=src,text=True).strip()
+            dist=src/'dist'
+            if game['id']=='openkart':
+                dist.mkdir()
+                for name in ['index.html','src','assets','vendor','sw.js','offline-manifest.js']:
+                    f=src/name
+                    if f.is_dir():shutil.copytree(f,dist/name)
+                    elif f.is_file():shutil.copy2(f,dist/name)
+            else:
+                if not (src/'node_modules').exists():
+                    run(['npm','ci','--ignore-scripts','--no-audit','--no-fund'],src)
+                env=dict(os.environ,HIRAETH_PUBLIC='1',PAGES_BASE='/')
+                run(['node',str(src/'node_modules/vite/bin/vite.js'),'build','--configLoader=runner','--base=/','--outDir',str(dist),'--emptyOutDir'],src,env=env)
+            output=args.output/f'{game["id"]}-{revision[:12]}.zip'
+            digest=package(dist,output)
+            # Hash in filename makes catalog replacement safe even when rebuilding the same commit.
+            final=args.output/f'{game["id"]}-{digest[:16]}.zip';output.replace(final)
+            game.update(sha256=digest,bytes=final.stat().st_size,revision=revision,download=f'https://github.com/rnaud/anf/releases/download/game-library/{final.name}')
+            print(f'{game["title"]}: {final.stat().st_size/1024**2:.1f} MB · {digest[:12]}',flush=True)
+    data=json.dumps(catalog,indent=2)+'\n'
+    (args.output/'catalog.json').write_text(data)
+    if args.bundle_catalog:CATALOG.write_text(data)
+
+if __name__=='__main__':main()

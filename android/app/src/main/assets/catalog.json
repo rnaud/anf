@@ -1,0 +1,129 @@
+{
+  "schema": 1,
+  "games": [
+    {
+      "id": "pocket-siege",
+      "title": "Pocket Siege",
+      "description": "Tiny squads. Big explosions.",
+      "art": "pocket-siege.webp",
+      "repo": "pocket-siege",
+      "kind": "web",
+      "website": "https://rnaud.github.io/pocket-siege/",
+      "sha256": "95696baa9bb15d1a37565537a557dc71d1234b60b688d8ef7131115943bc033a",
+      "bytes": 111023089,
+      "revision": "a172020a325d612bdda3f58bb866ff65ce23cbd6",
+      "download": "https://github.com/rnaud/anf/releases/download/game-library/pocket-siege-95696baa9bb15d1a.zip"
+    },
+    {
+      "id": "jumpman",
+      "title": "Jumpman",
+      "description": "Four classics and original modes. Bring your own ROMs.",
+      "art": "jumpman.webp",
+      "repo": "jumpman",
+      "kind": "native",
+      "website": "https://github.com/rnaud/jumpman/releases/tag/android-latest",
+      "packageName": "com.anf.jumpman.android"
+    },
+    {
+      "id": "dust-valley",
+      "title": "Dust Valley",
+      "description": "Desert trails, dusty corners, and one more jump.",
+      "art": "dust-valley.webp",
+      "repo": "dust-valley-motocross",
+      "kind": "web",
+      "website": "https://rnaud.github.io/dust-valley-motocross/",
+      "sha256": "f8f0afbf591a4d0bb16a687b208884390130e64ce749727e1fe104d520ed6554",
+      "bytes": 1394814,
+      "revision": "76b59bbec6e53df34a8957e24ac2c1b36697fe15",
+      "download": "https://github.com/rnaud/anf/releases/download/game-library/dust-valley-f8f0afbf591a4d0b.zip"
+    },
+    {
+      "id": "feels",
+      "title": "feels",
+      "description": "Quiet places and a little room to breathe.",
+      "art": "feels.webp",
+      "repo": "feels",
+      "kind": "web",
+      "website": "https://rnaud.github.io/feels/",
+      "sha256": "40192300054c46c7e1b6c5faa0e155586def6840cf1452ccbe24ecb1a4650342",
+      "bytes": 12647817,
+      "revision": "220544a7281f0f8f615cb488fa0b8e6bc785e6b4",
+      "download": "https://github.com/rnaud/anf/releases/download/game-library/feels-40192300054c46c7.zip"
+    },
+    {
+      "id": "hiraeth",
+      "title": "Hiraeth",
+      "description": "A traveller, a ship, and strange worlds.",
+      "art": "hiraeth.webp",
+      "repo": "hiraeth",
+      "kind": "web",
+      "website": "https://hiraeth.my/",
+      "sha256": "55ce07948448a239e592fa9c7930266e4f4ef6444372c3d1eea00c84320fc0f3",
+      "bytes": 173797934,
+      "revision": "e83289df62945b4065cf687ba36ce22f060bdb53",
+      "download": "https://github.com/rnaud/anf/releases/download/game-library/hiraeth-55ce07948448a239.zip"
+    },
+    {
+      "id": "openkart",
+      "title": "OpenKart",
+      "description": "Animal racers and painted worlds.",
+      "art": "openkart-nyc.webp",
+      "repo": "openkart",
+      "kind": "web",
+      "website": "https://rnaud.github.io/openkart/",
+      "sha256": "10f1b223d3ca9b3575e57b76a5fbd373dfaaca09a229500493d2fc7309aa2548",
+      "bytes": 192567547,
+      "revision": "4f777ac1457ddcf0eafde5af983b39f98f393497",
+      "download": "https://github.com/rnaud/anf/releases/download/game-library/openkart-10f1b223d3ca9b35.zip"
+    },
+    {
+      "id": "rez",
+      "title": "REZ: HYRULE",
+      "description": "A kingdom of light. A soundtrack shaped by your shots.",
+      "art": "rez-hyrule-gameplay.webp",
+      "repo": "rez-hyrule",
+      "kind": "web",
+      "website": "https://rnaud.github.io/rez-hyrule/",
+      "sha256": "0da561cea3dd438f364fc35fa7c42ac3ad9bb3cbab88a36304c3fbecffd7b6b1",
+      "bytes": 783887,
+      "revision": "4f6af13e758c97830499180612292128f0802c92",
+      "download": "https://github.com/rnaud/anf/releases/download/game-library/rez-0da561cea3dd438f.zip"
+    },
+    {
+      "id": "little-worlds",
+      "title": "Little Worlds",
+      "description": "A family arcade of small adventures.",
+      "art": "little-worlds.webp",
+      "repo": "little-worlds",
+      "kind": "web",
+      "website": "https://rnaud.github.io/little-worlds/",
+      "sha256": "b2c447aa46ab5e815428237cad5e11de0583be648bff3ee8cfd5a103183cb2f8",
+      "bytes": 1846396,
+      "revision": "f5319315b0b39f4e33e42fb6fcbf6b1dbcdcf262",
+      "download": "https://github.com/rnaud/anf/releases/download/game-library/little-worlds-b2c447aa46ab5e81.zip"
+    },
+    {
+      "id": "alexandria",
+      "title": "Alexandria",
+      "description": "Your retro game library and launcher.",
+      "art": "alexandria.webp",
+      "repo": "alexandria",
+      "kind": "native",
+      "website": "https://github.com/rnaud/alexandria/releases/latest",
+      "packageName": "com.collectionfront"
+    },
+    {
+      "id": "herochess",
+      "title": "Herochess",
+      "description": "A familiar board, a hand of spells.",
+      "art": "herochess.webp",
+      "repo": "herochess",
+      "kind": "web",
+      "website": "https://rnaud.github.io/herochess/",
+      "sha256": "8a0c0810a61c3f50a6afd88f2f758469b4fd8a19a4d373c5a869475824bb1382",
+      "bytes": 2966928,
+      "revision": "3b256c02536b6d7e6b9baf245df2dde841a00190",
+      "download": "https://github.com/rnaud/anf/releases/download/game-library/herochess-8a0c0810a61c3f50.zip"
+    }
+  ]
+}
