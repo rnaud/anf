@@ -2,6 +2,7 @@
 """Build immutable web-game ZIPs + catalog from clean Git checkouts. Never edits source repos."""
 import argparse, hashlib, json, os, shutil, subprocess, tempfile, zipfile
 from package_manifest import write_manifest, verify_archive
+from source_assets import verify_mcm_assets
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -38,9 +39,17 @@ def package(source, output, game=None):
             digest.update(block)
     return digest.hexdigest()
 
+def require_current_local(local, repo):
+    revision = subprocess.check_output(['git','rev-parse','HEAD'],cwd=local,text=True).strip()
+    remote = subprocess.check_output(['git','ls-remote',f'https://github.com/rnaud/{repo}.git','HEAD'],text=True).split()
+    if not remote or remote[0] != revision:
+        raise ValueError(f'{repo}: local checkout {revision[:12]} is not the current remote HEAD. Build without --local, update the checkout, or explicitly use --allow-stale-local for a historical build.')
+    return revision
+
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--repack-existing',type=Path,help='Add manifests to already-published ZIPs without changing game versions')
+    p.add_argument('--allow-stale-local',action='store_true',help='Explicitly permit historical local snapshots (never the default)')
     p.add_argument('--local',type=Path,help='Use clean HEAD snapshots from sibling repos; missing repos are cloned')
     p.add_argument('--output',type=Path,default=ROOT/'android/packages')
     p.add_argument('--only',nargs='+',help='Build selected game IDs for development')
@@ -65,9 +74,12 @@ def main():
                     archive.extractall(dist)
             else:
                 if local and (local/'.git').exists():
-                    snapshot=Path(tmp)/'source.tar'
-                    run(['git','archive','--format=tar',f'--output={snapshot}','HEAD'],local)
-                    run(['tar','-xf',str(snapshot),'-C',str(src)],src)
+                    if not args.allow_stale_local:require_current_local(local,game['repo'])
+                    # Stream the snapshot to avoid a second tar-sized copy of large game repos.
+                    with subprocess.Popen(['git','archive','--format=tar','HEAD'],cwd=local,stdout=subprocess.PIPE) as snapshot:
+                        run(['tar','-xf','-','-C',str(src)],src,stdin=snapshot.stdout)
+                        snapshot.stdout.close()
+                        if snapshot.wait()!=0:raise RuntimeError('Git snapshot failed')
                     revision=subprocess.check_output(['git','rev-parse','HEAD'],cwd=local,text=True).strip()
                     if (local/'node_modules').exists(): (src/'node_modules').symlink_to((local/'node_modules').resolve(),target_is_directory=True)
                 else:
@@ -85,6 +97,8 @@ def main():
                         run(['npm','ci','--ignore-scripts','--no-audit','--no-fund'],src)
                     env=dict(os.environ,HIRAETH_PUBLIC='1',PAGES_BASE='/')
                     run(['node',str(src/'node_modules/vite/bin/vite.js'),'build','--configLoader=runner','--base=/','--outDir',str(dist),'--emptyOutDir'],src,env=env)
+            if game['id']=='dust-valley' and not args.repack_existing and not args.allow_stale_local:
+                verify_mcm_assets(src,dist)
             output=args.output/f'{game["id"]}-{revision[:12]}.zip'
             digest=package(dist,output,game)
             # Hash in filename makes catalog replacement safe even when rebuilding the same commit.

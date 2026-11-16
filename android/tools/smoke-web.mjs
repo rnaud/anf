@@ -23,7 +23,7 @@ for(const game of catalog.games.filter(g=>g.kind==='web'&&(!process.env.GAME_ID|
   catch{missing.push(url.pathname);await route.fulfill({status:404,body:'Not found'});}
  });
  await page.goto('https://'+host+'/');await page.waitForTimeout(4000);
- if(game.id==='dust-valley'){
+ if(game.id==='dust-valley'&&!process.env.MCM_ONLY){
   await page.waitForFunction(()=>window.__game);
   for(const mode of ['race','free']){
    if(mode==='free'){await page.click('#pause');await page.click('#home');await page.click('[data-mode=free]');}
@@ -35,6 +35,27 @@ for(const game of catalog.games.filter(g=>g.kind==='web'&&(!process.env.GAME_ID|
    await page.keyboard.up('KeyW');
    assert.equal(await page.evaluate(()=>window.__game.snapshot().mode),mode);
    await page.screenshot({path:'.local/android-smoke/dust-valley-'+mode+'.png'});
+  }
+ }
+ if(game.id==='dust-valley'&&process.env.MCM_ONLY){
+  await page.waitForFunction(()=>window.__game);
+  await page.selectOption('#physics-mode','mcm-preview');
+  await page.uncheck('#sand-mode');
+  await page.click('[data-mode=free]');
+  for(const [map,rider,bike] of [['quarries-dunes','rider01','bike01'],['season-week10','rider12','bike12']]){
+   await page.selectOption('#mcm-map',map);
+   await page.selectOption('#mcm-rider',rider);await page.selectOption('#mcm-bike',bike);
+   await page.click('#start');
+   await page.waitForFunction(()=>['playing','tutorial'].includes(window.__game.snapshot().phase),null,{timeout:120000});
+   if(await page.locator('#tutorial').isVisible())await page.click('#tutorial-start');
+   await page.waitForFunction(()=>window.__game.snapshot().frame>=5,null,{timeout:120000});
+   const result=await page.evaluate(()=>{const s=window.__game.snapshot();return {assets:s.originalAssets,frame:s.frame,finite:[s.x,s.y,s.z].every(Number.isFinite)};});
+   assert.equal(result.assets.map,map);assert.equal(result.assets.rider,rider);assert.equal(result.assets.bike,bike);
+   assert.equal(result.assets.parts,21);assert.equal(result.assets.terrainTextures,true);
+   assert.equal(result.assets.missingTerrainTextures,0);assert.ok(result.finite);
+   console.log(JSON.stringify({mcmPreview:result}));
+   await page.screenshot({path:'.local/android-smoke/mcm-'+map+'.png'});
+   await page.click('#pause');await page.click('#home');
   }
  }
  await page.screenshot({path:'.local/android-smoke/'+game.id+'.png'});

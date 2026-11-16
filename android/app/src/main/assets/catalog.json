@@ -35,13 +35,13 @@
       "repo": "dust-valley-motocross",
       "kind": "web",
       "website": "https://rnaud.github.io/dust-valley-motocross/",
-      "sha256": "28cfc961a1e73090ee5f1fe1ff7f5c9555a3bcecd453d2969cb948103d5e574c",
-      "bytes": 1395511,
-      "revision": "76b59bbec6e53df34a8957e24ac2c1b36697fe15",
-      "download": "https://github.com/rnaud/anf/releases/download/game-library/dust-valley-28cfc961a1e73090.zip",
-      "manifest": "https://github.com/rnaud/anf/releases/download/game-library/dust-valley-28cfc961a1e73090.manifest.json",
-      "fileCount": 7,
-      "expandedBytes": 1905850
+      "sha256": "704e4cdb552b892c06361a7423f6637248dfb857910004d9dfa8b9ac7623c4c9",
+      "bytes": 117510053,
+      "revision": "a17c65ada6a9b8487b7c54db1b496622b22881a6",
+      "download": "https://github.com/rnaud/anf/releases/download/game-library/dust-valley-704e4cdb552b892c.zip",
+      "manifest": "https://github.com/rnaud/anf/releases/download/game-library/dust-valley-704e4cdb552b892c.manifest.json",
+      "fileCount": 89,
+      "expandedBytes": 120742727
     },
     {
       "id": "feels",
