@@ -6,8 +6,8 @@ android {
         applicationId = "io.anf.games"
         minSdk = 26
         targetSdk = 36
-        versionCode = 3
-        versionName = "0.1.2"
+        versionCode = 4
+        versionName = "0.2.0"
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -20,6 +20,6 @@ android {
         keyAlias = "anf"
         keyPassword = System.getenv("ANF_KEYSTORE_PASSWORD")
     }
-    buildTypes { getByName("release") { if (keystore != null) signingConfig = signingConfigs.getByName("release") } }
+    buildTypes { getByName("debug") { applicationIdSuffix = ".debug" }; getByName("release") { if (keystore != null) signingConfig = signingConfigs.getByName("release") } }
 }
 dependencies { testImplementation("junit:junit:4.13.2") }

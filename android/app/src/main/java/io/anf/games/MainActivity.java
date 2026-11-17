@@ -7,6 +7,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.*;
 import android.net.Uri;
 import android.os.Bundle;
+import android.content.res.Configuration;
 import android.view.*;
 import android.widget.*;
 import java.io.*;
@@ -21,6 +22,7 @@ public class MainActivity extends Activity {
     final ExecutorService worker = Executors.newSingleThreadExecutor();
     final List<Game> games = new ArrayList<>();
     PackageStore store; LinearLayout list; TextView status; Button refresh;
+    ScrollView libraryScroll; boolean downloadedOnly; AlertDialog details;
     volatile String busy = ""; Future<?> task; Game importing;
     int ink=Color.rgb(36,65,54), muted=Color.rgb(99,110,101);
     @Override public void onCreate(Bundle state) {
@@ -43,43 +45,107 @@ public class MainActivity extends Activity {
     void load(byte[] bytes) throws Exception { games.clear();games.addAll(parse(bytes)); }
     int dp(int n){return (int)(n*getResources().getDisplayMetrics().density+.5f);}
     TextView text(String value,int size,int color){TextView t=new TextView(this);t.setText(value);t.setTextSize(size);t.setTextColor(color);t.setPadding(0,dp(6),0,dp(6));return t;}
-    Button button(String label,Runnable action){Button b=new Button(this);b.setText(label);b.setAllCaps(false);b.setOnClickListener(v->action.run());return b;}
+    Button button(String label,Runnable action){
+        Button b=new Button(this);b.setText(label);b.setTextSize(13);b.setAllCaps(false);
+        b.setPadding(dp(14),dp(6),dp(14),dp(6));b.setMinHeight(dp(44));b.setMinimumHeight(dp(44));
+        GradientDrawable normal=surface(0xfff7f7ef,20);normal.setStroke(dp(1),0xffc9d0c3);
+        StateListDrawable states=new StateListDrawable();
+        states.addState(new int[]{-android.R.attr.state_enabled},surface(0xffe0e3d8,20));
+        states.addState(new int[]{android.R.attr.state_selected},surface(ink,20));states.addState(new int[]{},normal);
+        b.setBackground(new RippleDrawable(android.content.res.ColorStateList.valueOf(0x22405f4c),states,null));
+        b.setTextColor(new android.content.res.ColorStateList(new int[][]{new int[]{-android.R.attr.state_enabled},new int[]{android.R.attr.state_selected},new int[]{}},new int[]{muted,0xfff6f4e8,ink}));
+        b.setOnClickListener(v->action.run());return b;
+    }
+    GradientDrawable surface(int color,int radius) {
+        GradientDrawable d=new GradientDrawable();d.setColor(color);d.setCornerRadius(dp(radius));return d;
+    }
     void render(){
-        ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.setBackgroundColor(Color.rgb(245,244,237));
-        list=new LinearLayout(this);list.setOrientation(LinearLayout.VERTICAL);list.setPadding(dp(22),dp(22),dp(22),dp(28));scroll.addView(list);
+        boolean compact=getResources().getConfiguration().screenHeightDp<480;
+        int previousY=libraryScroll==null?0:libraryScroll.getScrollY();
+        ScrollView scroll=new ScrollView(this);libraryScroll=scroll;
+        scroll.setFillViewport(true);scroll.setBackgroundColor(Color.rgb(241,240,230));
+        list=new LinearLayout(this);list.setOrientation(LinearLayout.VERTICAL);list.setPadding(dp(18),dp(compact?6:20),dp(18),dp(28));scroll.addView(list);
         scroll.setOnApplyWindowInsetsListener((v,insets)->{v.setPadding(insets.getSystemWindowInsetLeft(),insets.getSystemWindowInsetTop(),insets.getSystemWindowInsetRight(),insets.getSystemWindowInsetBottom());return insets;});
         setContentView(scroll);
-        TextView brand=text("anf / games",18,ink);brand.setTypeface(null,Typeface.BOLD);list.addView(brand);
-        TextView title=text("A little escape.",36,ink);title.setTypeface(Typeface.create("serif",Typeface.NORMAL));list.addView(title);
-        list.addView(text("Your games, ready when you are. Download once, then play offline.",16,muted));
-        status=text("Browser games play here. Native games open in their own apps.",13,muted);list.addView(status);
-        refresh=button("Check for game updates",this::refreshCatalog);refresh.setEnabled(busy.isEmpty());list.addView(refresh);
-        for(Game g:games)card(g);
-        list.addView(text("Game progress stays on this device. Removing a download keeps its web saves; uninstalling anf games clears them.",12,muted));
+        LinearLayout masthead=new LinearLayout(this);masthead.setGravity(Gravity.CENTER_VERTICAL);
+        TextView brand=text("anf / game shelf",16,ink);brand.setTypeface(null,Typeface.BOLD);
+        masthead.addView(brand,new LinearLayout.LayoutParams(0,-2,1));
+        refresh=button("↻ Updates",this::refreshCatalog);refresh.setContentDescription("Check for game updates");refresh.setEnabled(busy.isEmpty());
+        masthead.addView(refresh);list.addView(masthead);
+        TextView title=text("Pick a cartridge.",32,ink);title.setTypeface(Typeface.create("serif",Typeface.NORMAL));if(!compact)list.addView(title);
+        int ready=0;for(Game g:games)if(store.current(g.id)!=null)ready++;
+        if(!compact)list.addView(text(games.size()+" games  /  "+ready+" ready offline",13,muted));
+        LinearLayout filters=new LinearLayout(this);filters.setPadding(0,dp(8),0,dp(6));
+        Button all=button("All games",()->{downloadedOnly=false;libraryScroll.scrollTo(0,0);render();});
+        Button installed=button("Downloaded",()->{downloadedOnly=true;libraryScroll.scrollTo(0,0);render();});
+        all.setTypeface(null,downloadedOnly?Typeface.NORMAL:Typeface.BOLD);
+        installed.setTypeface(null,downloadedOnly?Typeface.BOLD:Typeface.NORMAL);
+        all.setContentDescription("All games"+(downloadedOnly?"":", selected"));
+        installed.setContentDescription("Downloaded games"+(downloadedOnly?", selected":""));
+        all.setSelected(!downloadedOnly);installed.setSelected(downloadedOnly);
+        LinearLayout.LayoutParams filterParams=new LinearLayout.LayoutParams(-2,-2);filterParams.setMargins(0,0,dp(8),0);
+        filters.addView(all,filterParams);filters.addView(installed);
+        if(compact){filters.setPadding(0,0,dp(8),0);masthead.addView(filters,1);}else list.addView(filters);
+        status=text(busy.isEmpty()?(compact?games.size()+" cartridges  /  "+ready+" ready offline":"Tap a cartridge to play or download."):"Working on your download…",12,muted);
+        status.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);list.addView(status);
+        LinearLayout shelf=new LinearLayout(this);shelf.setOrientation(LinearLayout.VERTICAL);list.addView(shelf);
+        final int[] previousWidth={-1};
+        shelf.addOnLayoutChangeListener((v,l,t,r,b,ol,ot,or,ob)->{
+            if(r-l>0&&previousWidth[0]!=r-l){previousWidth[0]=r-l;fillShelf(shelf,r-l);}
+        });
+        list.addView(text("A collection of small worlds.\nDownload your favourites and take them with you.",12,muted));
+        scroll.post(()->scroll.scrollTo(0,previousY));
     }
-    void card(Game g){
-        LinearLayout card=new LinearLayout(this);card.setOrientation(LinearLayout.VERTICAL);card.setPadding(0,dp(26),0,dp(12));list.addView(card);
+    void fillShelf(LinearLayout shelf,int width){
+        shelf.removeAllViews();boolean compact=getResources().getConfiguration().screenHeightDp<480;
+        int columns=Math.max(2,Math.min(5,width/dp(compact?140:168)));
+        LinearLayout row=null;int count=0;
+        for(int i=0;i<games.size();i++){
+            Game g=games.get(i);File current=store.current(g.id);boolean ready=current!=null;
+            if(downloadedOnly&&!ready)continue;
+            if(count%columns==0){row=new LinearLayout(this);row.setBaselineAligned(false);shelf.addView(row);}
+            boolean update=ready&&!g.hash.isEmpty()&&!current.getName().equals(g.hash);
+            String badge=busy.equals(g.id)?"DOWNLOADING":g.kind.equals("native")?"ANDROID APP":update?"UPDATE AVAILABLE":ready?"READY TO PLAY":"DOWNLOAD";
+            CartridgeView cartridge=new CartridgeView(this,g,i,badge,ready,()->showDetails(g));
+            LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(0,-2,1);params.setMargins(dp(4),dp(compact?4:8),dp(4),dp(compact?4:8));
+            row.addView(cartridge,params);count++;
+        }
+        if(count==0)shelf.addView(text("Your shelf is waiting. Download a game from All games to play offline.",16,muted));
+        else while(count%columns!=0){row.addView(new View(this),new LinearLayout.LayoutParams(0,1,1));count++;}
+    }
+    void showDetails(Game game){
+        if(details!=null&&details.isShowing())details.dismiss();
+        ScrollView scroll=new ScrollView(this);LinearLayout content=new LinearLayout(this);
+        content.setOrientation(LinearLayout.VERTICAL);content.setPadding(dp(22),dp(8),dp(22),dp(16));scroll.addView(content);
+        details=new AlertDialog.Builder(this).setTitle(game.title).setView(scroll).setNegativeButton("Back to shelf",null).create();
+        card(game,content);details.show();
+    }
+    void detailAction(Runnable action){if(details!=null)details.dismiss();action.run();}
+    @Override public void onConfigurationChanged(Configuration config){
+        super.onConfigurationChanged(config);String message=status==null?null:status.getText().toString();render();if(message!=null)status.setText(message);
+    }
+    void card(Game g,LinearLayout parent){
+        LinearLayout card=new LinearLayout(this);card.setOrientation(LinearLayout.VERTICAL);card.setPadding(0,dp(8),0,dp(12));parent.addView(card);
         ImageView image=new ImageView(this);image.setScaleType(ImageView.ScaleType.CENTER_CROP);image.setContentDescription(g.title+" artwork");
         try(InputStream in=getAssets().open("art/"+g.art)){image.setImageDrawable(Drawable.createFromStream(in,null));}catch(IOException ignored){}
-        card.addView(image,new LinearLayout.LayoutParams(-1,dp(190)));
-        TextView heading=text(g.title,27,ink);heading.setTypeface(Typeface.create("serif",Typeface.NORMAL));card.addView(heading);
+        card.addView(image,new LinearLayout.LayoutParams(-1,dp(132)));
         card.addView(text(g.description,15,muted));
         if(g.kind.equals("native")){
             card.addView(text("Separate Android app",12,muted));
-            card.addView(button("Open / install "+g.title,()->openNative(g)));return;
+            card.addView(button("Open / install "+g.title,()->detailAction(()->openNative(g))));return;
         }
         File current=store.current(g.id);boolean ready=current!=null;
         String label=ready?"Downloaded · ready offline":(g.download.isEmpty()?"Package not published yet":String.format(Locale.US,"Download · %.1f MB",g.bytes/1048576.0));
         card.addView(text(label,12,muted));
         if(g.fileCount>0)card.addView(text(String.format(Locale.US,"Complete game · %d files · %.1f MB installed",g.fileCount,g.expandedBytes/1048576.0),12,muted));
-        if(ready){Button play=button("Play",()->startActivity(new Intent(this,PlayerActivity.class).putExtra("id",g.id).putExtra("title",g.title)));play.setEnabled(!busy.equals(g.id));card.addView(play);}
+        if(ready){Button play=button("Play",()->detailAction(()->startActivity(new Intent(this,PlayerActivity.class).putExtra("id",g.id).putExtra("title",g.title))));play.setEnabled(!busy.equals(g.id));card.addView(play);}
         if(!g.download.isEmpty()&&(!ready||!current.getName().equals(g.hash))){
-            Button get=button(ready?"Download update":"Download game",()->download(g));get.setEnabled(busy.isEmpty());card.addView(get);
+            Button get=button(ready?"Download update":"Download game",()->detailAction(()->download(g)));get.setEnabled(busy.isEmpty());card.addView(get);
         }
-        if(!g.hash.isEmpty()){Button imported=button("Import game ZIP",()->{importing=g;Intent pick=new Intent(Intent.ACTION_OPEN_DOCUMENT).setType("application/zip").addCategory(Intent.CATEGORY_OPENABLE);try{startActivityForResult(pick,2);}catch(Exception e){message("No file picker is available.");}});imported.setEnabled(busy.isEmpty());card.addView(imported);}
-        if(busy.equals(g.id))card.addView(button("Cancel download",()->{if(task!=null)task.cancel(true);status.setText("Cancelling download…");}));
-        if(ready){Button remove=button("Remove download",()->new AlertDialog.Builder(this).setTitle("Remove "+g.title+"?").setMessage("Game files will be removed. Web saves will stay on this device.").setNegativeButton("Keep",null).setPositiveButton("Remove",(d,w)->{try{store.remove(g.id);render();}catch(Exception e){message(e.getMessage());}}).show());remove.setEnabled(busy.isEmpty());card.addView(remove);}
-        card.addView(button("Visit game website",()->external(g.website)));
+        if(!g.hash.isEmpty()){Button imported=button("Import game ZIP",()->{if(details!=null)details.dismiss();importing=g;Intent pick=new Intent(Intent.ACTION_OPEN_DOCUMENT).setType("application/zip").addCategory(Intent.CATEGORY_OPENABLE);try{startActivityForResult(pick,2);}catch(Exception e){message("No file picker is available.");}});imported.setEnabled(busy.isEmpty());card.addView(imported);}
+        if(busy.equals(g.id))card.addView(button("Cancel download",()->{if(details!=null)details.dismiss();if(task!=null)task.cancel(true);status.setText("Cancelling download…");}));
+        if(ready){Button remove=button("Remove download",()->new AlertDialog.Builder(this).setTitle("Remove "+g.title+"?").setMessage("Game files will be removed. Web saves will stay on this device.").setNegativeButton("Keep",null).setPositiveButton("Remove",(d,w)->{try{store.remove(g.id);if(details!=null)details.dismiss();render();}catch(Exception e){message(e.getMessage());}}).show());remove.setEnabled(busy.isEmpty());card.addView(remove);}
+        card.addView(button("Visit game website",()->detailAction(()->external(g.website))));
     }
     void openNative(Game g){Intent launch=getPackageManager().getLaunchIntentForPackage(g.packageName);if(launch!=null)startActivity(launch);else external(g.website);}
     void external(String url){try{Uri uri=Uri.parse(url);if(!"https".equals(uri.getScheme()))throw new IllegalArgumentException("HTTPS required");startActivity(new Intent(Intent.ACTION_VIEW,uri));}catch(Exception e){message("Could not open this link.");}}

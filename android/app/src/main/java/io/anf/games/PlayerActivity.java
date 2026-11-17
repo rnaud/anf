@@ -13,16 +13,25 @@ import java.util.*;
 
 public class PlayerActivity extends Activity {
     WebView web; File root; String host; ValueCallback<Uri[]> fileCallback;
+    AlertDialog exitDialog; boolean exiting;
+    android.window.OnBackInvokedCallback backCallback;
     @Override public void onCreate(Bundle state){
         super.onCreate(state);
-        if(Build.VERSION.SDK_INT>=33)getOnBackInvokedDispatcher().registerOnBackInvokedCallback(android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT,this::confirmExit);
         try{String id=PackageStore.validId(getIntent().getStringExtra("id"));root=new PackageStore(new File(getFilesDir(),"games")).current(id);host=id+".games.anf.invalid";}
         catch(Exception e){finish();return;}
         if(root==null){finish();return;}
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         LinearLayout layout=new LinearLayout(this);layout.setOrientation(LinearLayout.VERTICAL);
         layout.setOnApplyWindowInsetsListener((v,i)->{v.setPadding(i.getSystemWindowInsetLeft(),i.getSystemWindowInsetTop(),i.getSystemWindowInsetRight(),i.getSystemWindowInsetBottom());return i;});
-        Button back=new Button(this);back.setText("‹ Library  ·  "+getIntent().getStringExtra("title"));back.setAllCaps(false);back.setOnClickListener(v->confirmExit());layout.addView(back);
+        float density=getResources().getDisplayMetrics().density;
+        LinearLayout bar=new LinearLayout(this);bar.setGravity(Gravity.CENTER_VERTICAL);bar.setPadding((int)(8*density),0,(int)(12*density),0);bar.setBackgroundColor(0xfff1f0e6);
+        Button back=new Button(this);back.setText("‹ Library");back.setTextSize(13);back.setAllCaps(false);
+        back.setContentDescription("Exit game and return to library");back.setTextColor(0xff244136);
+        android.graphics.drawable.GradientDrawable shape=new android.graphics.drawable.GradientDrawable();shape.setColor(0xffe0e6d8);shape.setCornerRadius(20*density);
+        back.setBackground(new android.graphics.drawable.RippleDrawable(android.content.res.ColorStateList.valueOf(0x22315d4c),shape,null));
+        back.setOnClickListener(v->confirmExit());bar.addView(back,new LinearLayout.LayoutParams((int)(100*density),(int)(40*density)));
+        TextView name=new TextView(this);name.setText(getIntent().getStringExtra("title"));name.setTextColor(0xff244136);name.setTextSize(15);name.setGravity(Gravity.END|Gravity.CENTER_VERTICAL);name.setSingleLine(true);name.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        bar.addView(name,new LinearLayout.LayoutParams(0,-1,1));layout.addView(bar,new LinearLayout.LayoutParams(-1,(int)(48*density)));
         web=new WebView(this);layout.addView(web,new LinearLayout.LayoutParams(-1,0,1));setContentView(layout);
         WebSettings settings=web.getSettings();settings.setJavaScriptEnabled(true);settings.setDomStorageEnabled(true);
         settings.setAllowFileAccess(false);settings.setAllowContentAccess(false);settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
@@ -46,6 +55,11 @@ public class PlayerActivity extends Activity {
                 try{startActivityForResult(params.createIntent(),1);return true;}catch(Exception e){fileCallback=null;return false;}
             }
         });
+        // Register above WebView's own navigation callbacks so Back always offers an exit.
+        if(Build.VERSION.SDK_INT>=33){
+            backCallback=this::confirmExit;
+            getOnBackInvokedDispatcher().registerOnBackInvokedCallback(android.window.OnBackInvokedDispatcher.PRIORITY_OVERLAY,backCallback);
+        }
         web.loadUrl("https://"+host+"/index.html");
     }
     WebResourceResponse resource(WebResourceRequest request){
@@ -67,10 +81,47 @@ public class PlayerActivity extends Activity {
         }catch(Exception e){return missing();}
     }
     WebResourceResponse missing(){return new WebResourceResponse("text/plain","UTF-8",404,"Not Found",Collections.emptyMap(),new ByteArrayInputStream("Missing game file".getBytes(java.nio.charset.StandardCharsets.UTF_8)));}
-    void confirmExit(){new AlertDialog.Builder(this).setTitle("Return to your library?").setMessage("Unsaved progress in the current session may be lost.").setNegativeButton("Keep playing",null).setPositiveButton("Library",(d,w)->finish()).show();}
-    @Override public boolean onKeyDown(int key,android.view.KeyEvent event){if(Build.VERSION.SDK_INT<33&&key==android.view.KeyEvent.KEYCODE_BACK){confirmExit();return true;}return super.onKeyDown(key,event);}
+    void confirmExit(){
+        if(exiting||isFinishing()||(exitDialog!=null&&exitDialog.isShowing()))return;
+        if(web!=null){web.onPause();web.pauseTimers();}
+        exitDialog=new AlertDialog.Builder(this)
+                .setTitle("Exit "+getIntent().getStringExtra("title")+"?")
+                .setMessage("Return to your game shelf. Unsaved progress in this session may be lost.")
+                .setNegativeButton("Keep playing",(d,w)->{})
+                .setPositiveButton("Exit game",(d,w)->exitGame())
+                .create();
+        exitDialog.setOnDismissListener(d->{
+            exitDialog=null;
+            if(!exiting&&!isFinishing()&&web!=null){web.resumeTimers();web.onResume();web.requestFocus();}
+        });
+        exitDialog.show();
+    }
+    void exitGame(){
+        exiting=true;
+        if(web!=null){
+            web.stopLoading();web.resumeTimers();
+            ((android.view.ViewGroup)web.getParent()).removeView(web);
+            web.removeAllViews();web.destroy();web=null;
+        }
+        finish();
+    }
+    // Predictive gestures are handled above; this fallback is for physical keys and older OSes.
+    @android.annotation.SuppressLint("GestureBackNavigation")
+    @Override public boolean dispatchKeyEvent(KeyEvent event){
+        // Catch physical Back before the focused WebView can consume it (including handhelds).
+        // Modern system gestures use the registered OnBackInvokedCallback instead.
+        if(event.getKeyCode()==KeyEvent.KEYCODE_BACK){
+            if(event.getAction()==KeyEvent.ACTION_UP&&!event.isCanceled())confirmExit();
+            return true;
+        }
+        return super.dispatchKeyEvent(event);
+    }
     @Override protected void onActivityResult(int req,int result,Intent data){super.onActivityResult(req,result,data);if(req==1&&fileCallback!=null){fileCallback.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(result,data));fileCallback=null;}}
     @Override protected void onPause(){if(web!=null)web.onPause();super.onPause();}
-    @Override protected void onResume(){super.onResume();if(web!=null)web.onResume();}
-    @Override protected void onDestroy(){if(fileCallback!=null)fileCallback.onReceiveValue(null);ServiceWorkerController.getInstance().setServiceWorkerClient(null);if(web!=null){web.stopLoading();web.destroy();}super.onDestroy();}
+    @Override protected void onResume(){super.onResume();if(web!=null&&(exitDialog==null||!exitDialog.isShowing())){web.resumeTimers();web.onResume();}}
+    @Override protected void onDestroy(){
+        exiting=true;
+        if(Build.VERSION.SDK_INT>=33&&backCallback!=null)getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(backCallback);
+        if(exitDialog!=null)exitDialog.dismiss();
+        if(fileCallback!=null)fileCallback.onReceiveValue(null);ServiceWorkerController.getInstance().setServiceWorkerClient(null);if(web!=null){web.stopLoading();web.resumeTimers();web.destroy();}super.onDestroy();}
 }

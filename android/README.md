@@ -4,6 +4,12 @@ A native Android library for the ten projects on anf.io. Eight browser games dow
 
 [Download the signed APK](https://github.com/rnaud/anf/releases/download/game-library/anf-games.apk) · [Release and game packages](https://github.com/rnaud/anf/releases/tag/game-library)
 
+## Game shelf
+
+The library uses a responsive grid of illustrated game cartridges, with ready, download, update and native-app badges. Tap a cartridge to open its details and Play, Download, Import or Remove controls. **Downloaded** filters the shelf to offline web games. Short landscape screens use a compact header so cartridges stay visible.
+
+While playing, the **Library** control, a hardware Back button, or the system Back gesture offers **Keep playing** and **Exit game**. Keeping the game resumes the same WebView session. Exiting destroys that WebView and returns to the shelf without clearing saved data. Modern Back callbacks run above WebView navigation; a key-dispatch fallback handles physical Back and older Android versions.
+
 ## Build
 
 Install JDK 21 and Android SDK 36, set `JAVA_HOME` and `ANDROID_HOME`, then:
@@ -13,7 +19,7 @@ cd android
 ./gradlew assembleDebug testDebugUnitTest lintDebug
 ```
 
-Install `app/build/outputs/apk/debug/app-debug.apk` with `adb install -r`. Open the `android/` directory in Android Studio for development. The website remains a standalone static site.
+Install `app/build/outputs/apk/debug/app-debug.apk` with `adb install -r`. Debug builds use `io.anf.games.debug`, separate from the signed release app and its saves. Open the `android/` directory in Android Studio for development. The website remains a standalone static site.
 
 ## Build game downloads
 
@@ -71,3 +77,13 @@ Dust Valley’s current package includes MCM preview: all 33 terrain binaries, o
 The WebView local-content approach follows [Android's local content guidance](https://developer.android.com/develop/ui/views/layout/webapps/load-local-content), using per-game HTTPS request interception instead of permissive `file://` access.
 
 Initial verification: all eight packaged games loaded with external requests blocked in Chromium; no uncaught JavaScript errors or missing local startup assets. Dust Valley was imported through Android’s file picker and launched in the emulator with connectivity disabled. Its Classic race and free-ride modes were exercised with network requests blocked in Chromium. Those initial checks covered an older Classic-only revision and did not cover MCM preview. The corrected package has separate source-asset completeness checks and MCM offline startup coverage. Full playthroughs and physical-device performance remain unverified.
+
+### Cartridge and Back navigation device check
+
+With the debug APK installed on an Android emulator using gesture navigation:
+
+```sh
+python3 android/tools/test-device-navigation.py --adb "$ANDROID_HOME/platform-tools/adb"
+```
+
+This test only operates on an `emulator-*` serial and the separate debug app. It seeds a small game fixture, checks cartridge details and filtering, physical/system Back with a focused WebView and history, keep-playing session preservation, explicit exit, edge Back gestures when the emulator’s SystemUI handler is attached, and portrait/landscape shelves. A detached system gesture handler is reported as skipped rather than passed. Screenshots go to `.local/cartridge-qa/`. It does not touch release-app downloads or saves.
