@@ -29,6 +29,8 @@ jobs:
       group: ${{ inputs.publish && 'game-library-release' || github.run_id }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -45,8 +47,16 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Test package manifests
         run: python3 -m unittest discover -s android/tools -p 'test_*.py'
+      - name: Allow access to private game repos
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          TOKEN: ${{ secrets.GAME_REPOS_TOKEN }}
+        run: |
+          if [ -n "$TOKEN" ]; then git config --global url."https://x-access-token:${TOKEN}@github.com/rnaud/".insteadOf "https://github.com/rnaud/"; else echo '::warning::GAME_REPOS_TOKEN is not set; private games (Hiraeth, OpenKart) keep their published packages.'; fi
       - name: Build downloadable games
         if: github.event_name == 'workflow_dispatch'
+        # A game that fails keeps its published package; it must not block the app release.
+        continue-on-error: true
         run: python3 android/tools/package-games.py --published-catalog --changed-only --bundle-catalog
       - name: Configure release signing
         if: inputs.publish
@@ -87,6 +97,8 @@ jobs:
       group: game-library-release
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -95,6 +107,11 @@ jobs:
           python-version: '3.12'
       - name: Test package manifests
         run: python3 -m unittest discover -s android/tools -p 'test_*.py'
+      - name: Allow access to private game repos
+        env:
+          TOKEN: ${{ secrets.GAME_REPOS_TOKEN }}
+        run: |
+          if [ -n "$TOKEN" ]; then git config --global url."https://x-access-token:${TOKEN}@github.com/rnaud/".insteadOf "https://github.com/rnaud/"; else echo '::warning::GAME_REPOS_TOKEN is not set; private games (Hiraeth, OpenKart) keep their published packages.'; fi
       - name: Rebuild games with new commits
         run: python3 android/tools/package-games.py --published-catalog --changed-only
       # Runs even if one game failed: the others still ship, and the failed one keeps its old package.

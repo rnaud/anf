@@ -116,12 +116,12 @@ def main():
     built,failed=[],[]
     for game in catalog['games']:
         if game['kind']!='web' or (args.only and game['id'] not in args.only):continue
-        if args.changed_only and not args.repack_existing:
-            head=remote_head(game['repo'])
-            if not needs_build(game,head):
-                print(f'{game["title"]}: current at {head[:12]}',flush=True);continue
-            print(f'{game["title"]}: {game.get("revision","unpublished")[:12]} -> {head[:12]}',flush=True)
         try:
+            if args.changed_only and not args.repack_existing:
+                head=remote_head(game['repo'])
+                if not needs_build(game,head):
+                    print(f'{game["title"]}: current at {head[:12]}',flush=True);continue
+                print(f'{game["title"]}: {game.get("revision","unpublished")[:12]} -> {head[:12]}',flush=True)
             build_game(game,args);built.append(game['id'])
         except Exception as e:
             # In update mode one broken game must not block the others; it keeps its published package.

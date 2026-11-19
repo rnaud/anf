@@ -39,7 +39,7 @@ For local testing before publication, transfer a ZIP to the device's Downloads f
 
 ## Publish
 
-Game versions are not tied to the APK. Every hour, the **Android library** workflow's `update-games` job compares each game repo's `HEAD` with the revision in the published `catalog.json`. It rebuilds only games that have new commits, uploads their packages, and then switches the catalog. A game that fails to build keeps its previous package, and the run is marked failed. To do this right away, run the workflow manually with `update_games` set.
+Game versions are not tied to the APK. Every hour, the **Android library** workflow's `update-games` job compares each game repo's `HEAD` with the revision in the published `catalog.json`. It rebuilds only games that have new commits, uploads their packages, and then switches the catalog. A game that fails to build keeps its previous package, and the run is marked failed. To do this right away, run the workflow manually with `update_games` set. Hiraeth and OpenKart are private repositories: add a `GAME_REPOS_TOKEN` secret (a fine-grained token with read-only Contents access to the game repos) so they update too. Without it, they keep their published packages and the run shows a warning.
 
 ```sh
 python3 android/tools/package-games.py --published-catalog --changed-only   # what the scheduled job runs
