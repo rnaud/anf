@@ -19,6 +19,9 @@ import org.json.*;
 
 public class MainActivity extends Activity {
     static final String CATALOG_URL = "https://github.com/rnaud/anf/releases/download/game-library/catalog.json";
+    // The APK only carries a fallback catalog; versions always come from the published catalog.
+    static final long CHECK_INTERVAL = 15 * 60 * 1000L;
+    volatile long lastCheck;
     final ExecutorService worker = Executors.newSingleThreadExecutor();
     final List<Game> games = new ArrayList<>();
     PackageStore store; LinearLayout list; TextView status; Button refresh;
@@ -70,7 +73,7 @@ public class MainActivity extends Activity {
         LinearLayout masthead=new LinearLayout(this);masthead.setGravity(Gravity.CENTER_VERTICAL);
         TextView brand=text("anf / game shelf",16,ink);brand.setTypeface(null,Typeface.BOLD);
         masthead.addView(brand,new LinearLayout.LayoutParams(0,-2,1));
-        refresh=button("↻ Updates",this::refreshCatalog);refresh.setContentDescription("Check for game updates");refresh.setEnabled(busy.isEmpty());
+        refresh=button("↻ Updates",()->refreshCatalog(false));refresh.setContentDescription("Check for game updates");refresh.setEnabled(busy.isEmpty());
         masthead.addView(refresh);list.addView(masthead);
         TextView title=text("Pick a cartridge.",32,ink);title.setTypeface(Typeface.create("serif",Typeface.NORMAL));if(!compact)list.addView(title);
         int ready=0;for(Game g:games)if(store.current(g.id)!=null)ready++;
@@ -134,8 +137,9 @@ public class MainActivity extends Activity {
             card.addView(text("Separate Android app",12,muted));
             card.addView(button("Open / install "+g.title,()->detailAction(()->openNative(g))));return;
         }
-        File current=store.current(g.id);boolean ready=current!=null;
-        String label=ready?"Downloaded · ready offline":(g.download.isEmpty()?"Package not published yet":String.format(Locale.US,"Download · %.1f MB",g.bytes/1048576.0));
+        File current=store.current(g.id);boolean ready=current!=null;boolean update=ready&&!g.hash.isEmpty()&&!current.getName().equals(g.hash);
+        if(!g.revision.isEmpty())card.addView(text("Latest version · "+g.revision.substring(0,Math.min(7,g.revision.length())),12,muted));
+        String label=ready?(update?"Downloaded · new version available":"Downloaded · latest version"):(g.download.isEmpty()?"Package not published yet":String.format(Locale.US,"Download · %.1f MB",g.bytes/1048576.0));
         card.addView(text(label,12,muted));
         if(g.fileCount>0)card.addView(text(String.format(Locale.US,"Complete game · %d files · %.1f MB installed",g.fileCount,g.expandedBytes/1048576.0),12,muted));
         if(ready){Button play=button("Play",()->detailAction(()->startActivity(new Intent(this,PlayerActivity.class).putExtra("id",g.id).putExtra("title",g.title))));play.setEnabled(!busy.equals(g.id));card.addView(play);}
@@ -150,20 +154,41 @@ public class MainActivity extends Activity {
     void openNative(Game g){Intent launch=getPackageManager().getLaunchIntentForPackage(g.packageName);if(launch!=null)startActivity(launch);else external(g.website);}
     void external(String url){try{Uri uri=Uri.parse(url);if(!"https".equals(uri.getScheme()))throw new IllegalArgumentException("HTTPS required");startActivity(new Intent(Intent.ACTION_VIEW,uri));}catch(Exception e){message("Could not open this link.");}}
     void message(String value){new AlertDialog.Builder(this).setTitle("anf games").setMessage(value).setPositiveButton("OK",null).show();}
-    void refreshCatalog(){
-        if(!busy.isEmpty())return;busy="catalog";render();status.setText("Checking for updates…");
+    @Override protected void onResume(){
+        super.onResume();
+        if(busy.isEmpty()&&System.currentTimeMillis()-lastCheck>CHECK_INTERVAL)refreshCatalog(true);
+    }
+    /** Worker thread: fetch the published catalog and keep it as the offline copy. */
+    List<Game> fetchCatalog() throws Exception {
+        ByteArrayOutputStream out=new ByteArrayOutputStream();Network.copy(CATALOG_URL,out,1024*1024,n->{});byte[] data=out.toByteArray();List<Game> next=parse(data);
+        File temp=new File(getFilesDir(),"catalog.tmp");Files.write(temp.toPath(),data);Files.move(temp.toPath(),new File(getFilesDir(),"catalog.json").toPath(),java.nio.file.StandardCopyOption.REPLACE_EXISTING,java.nio.file.StandardCopyOption.ATOMIC_MOVE);
+        lastCheck=System.currentTimeMillis();return next;
+    }
+    int updateCount(){int n=0;for(Game g:games){File c=store.current(g.id);if(c!=null&&!g.hash.isEmpty()&&!c.getName().equals(g.hash))n++;}return n;}
+    void refreshCatalog(boolean automatic){
+        if(!busy.isEmpty())return;busy="catalog";render();status.setText("Checking for new versions…");
         task=worker.submit(()->{
-            try{ByteArrayOutputStream out=new ByteArrayOutputStream();Network.copy(CATALOG_URL,out,1024*1024,n->{});byte[] data=out.toByteArray();List<Game> next=parse(data);
-                File temp=new File(getFilesDir(),"catalog.tmp");Files.write(temp.toPath(),data);Files.move(temp.toPath(),new File(getFilesDir(),"catalog.json").toPath(),java.nio.file.StandardCopyOption.REPLACE_EXISTING,java.nio.file.StandardCopyOption.ATOMIC_MOVE);
-                runOnUiThread(()->{busy="";games.clear();games.addAll(next);render();status.setText("Library is up to date.");});
-            }catch(Exception e){runOnUiThread(()->{busy="";render();status.setText("Could not update the catalog. Your existing downloads still work.");});}
+            try{List<Game> next=fetchCatalog();
+                runOnUiThread(()->{busy="";games.clear();games.addAll(next);render();int updates=updateCount();
+                    if(updates>0)status.setText(updates==1?"1 game has a new version.":updates+" games have new versions.");
+                    else if(!automatic)status.setText("Library is up to date.");});
+            }catch(Exception e){runOnUiThread(()->{busy="";render();status.setText(automatic?"Offline · showing your saved library.":"Could not check for updates. Your existing downloads still work.");});}
         });
     }
-    void download(Game g){
-        if(!busy.isEmpty())return;busy=g.id;render();status.setText("Downloading "+g.title+"… Keep the app open.");
+    void download(Game known){
+        if(!busy.isEmpty())return;busy=known.id;render();status.setText("Checking for the latest "+known.title+"…");
         task=worker.submit(()->{
-            File zip=new File(getCacheDir(),g.id+".zip.part");
+            File zip=new File(getCacheDir(),known.id+".zip.part");
+            Game latest=known;
+            // Always download the newest published version, not whatever the catalog said when it was last loaded.
+            try{List<Game> next=fetchCatalog();runOnUiThread(()->{games.clear();games.addAll(next);});for(Game n:next)if(n.id.equals(known.id))latest=n;}
+            catch(Exception e){if(Thread.currentThread().isInterrupted()){runOnUiThread(()->{busy="";render();status.setText("Download cancelled.");});return;}}
+            final Game g=latest;
             try{
+                if(g.download.isEmpty())throw new IOException("This game is not published yet");
+                File installed=store.current(g.id);
+                if(installed!=null&&installed.getName().equals(g.hash)){runOnUiThread(()->{busy="";render();status.setText(g.title+" is already the latest version.");});return;}
+                runOnUiThread(()->status.setText("Downloading "+g.title+"… Keep the app open."));
                 if(getFilesDir().getUsableSpace()<g.bytes+(g.expandedBytes>0?g.expandedBytes:g.bytes*2)+16*1024*1024)throw new IOException("Not enough free storage for this download");
                 long[] last={0};
                 try(OutputStream out=new FileOutputStream(zip)) { Network.copy(g.download,out,g.bytes,n->{long now=System.currentTimeMillis();if(now-last[0]>350){last[0]=now;runOnUiThread(()->status.setText("Downloading "+g.title+" · "+(n*100/g.bytes)+"%"));}}); }

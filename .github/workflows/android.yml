@@ -4,19 +4,29 @@ on:
     paths: ['android/**', '.github/workflows/android.yml']
   pull_request:
     paths: ['android/**', '.github/workflows/android.yml']
+  schedule:
+    # Pick up new game versions automatically. Only games whose repo HEAD moved are rebuilt.
+    - cron: '23 * * * *'
   workflow_dispatch:
     inputs:
       publish:
         description: Publish APK and downloadable game packages
         type: boolean
         default: false
+      update_games:
+        description: Only rebuild and publish games with new commits (no APK)
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
   build:
+    if: github.event_name != 'schedule' && !inputs.update_games
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    concurrency:
+      group: ${{ inputs.publish && 'game-library-release' || github.run_id }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -37,7 +47,7 @@ jobs:
         run: python3 -m unittest discover -s android/tools -p 'test_*.py'
       - name: Build downloadable games
         if: github.event_name == 'workflow_dispatch'
-        run: python3 android/tools/package-games.py --bundle-catalog
+        run: python3 android/tools/package-games.py --published-catalog --changed-only --bundle-catalog
       - name: Configure release signing
         if: inputs.publish
         env:
@@ -67,7 +77,29 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           cp android/app/build/outputs/apk/release/app-release.apk android/packages/anf-games.apk
-          gh release view game-library || gh release create game-library --title 'anf games for Android' --notes 'Install anf-games.apk. Browser games download inside the app. Jumpman and Alexandria open separately.'
-          # Upload immutable packages first; the catalog is the last file switched.
-          gh release upload game-library android/packages/*.zip android/packages/*.manifest.json android/packages/anf-games.apk --clobber
-          gh release upload game-library android/packages/catalog.json --clobber
+          android/tools/publish-release.sh android/packages/anf-games.apk
+  update-games:
+    if: github.event_name == 'schedule' || inputs.update_games
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: game-library-release
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test package manifests
+        run: python3 -m unittest discover -s android/tools -p 'test_*.py'
+      - name: Rebuild games with new commits
+        run: python3 android/tools/package-games.py --published-catalog --changed-only
+      # Runs even if one game failed: the others still ship, and the failed one keeps its old package.
+      - name: Publish updated games
+        if: ${{ !cancelled() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: android/tools/publish-release.sh

@@ -39,7 +39,13 @@ For local testing before publication, transfer a ZIP to the device's Downloads f
 
 ## Publish
 
-The **Android library** GitHub Actions workflow builds and checks APKs on changes. A manual run also builds all eight browser packages. Set its `publish` input to publish packages, the catalog and `anf-games.apk` to the `game-library` release.
+Game versions are not tied to the APK. Every hour, the **Android library** workflow's `update-games` job compares each game repo's `HEAD` with the revision in the published `catalog.json`. It rebuilds only games that have new commits, uploads their packages, and then switches the catalog. A game that fails to build keeps its previous package, and the run is marked failed. To do this right away, run the workflow manually with `update_games` set.
+
+```sh
+python3 android/tools/package-games.py --published-catalog --changed-only   # what the scheduled job runs
+```
+
+The same workflow builds and checks APKs on changes. Set its `publish` input to rebuild changed games and publish them with `anf-games.apk` to the `game-library` release. Only publish a new APK when the app itself changes. GitHub pauses scheduled workflows after 60 days without repository activity; re-enable it in the Actions tab if that happens.
 
 Publishing requires a stable signing key in repository secrets:
 
@@ -48,7 +54,7 @@ Publishing requires a stable signing key in repository secrets:
 
 The release build intentionally has no debug-signing fallback. Keep the key for future updates. For a local signed build, set `ANF_KEYSTORE` to its path and `ANF_KEYSTORE_PASSWORD`, then run `./gradlew assembleRelease`. Never commit the key.
 
-Packages upload before the catalog changes, and old content-addressed packages remain available for installed catalogs. **Check for game updates** fetches the release catalog; the app's existing catalog and downloads remain available if that request fails. Publishing the Android release does not publish the website.
+Packages upload before the catalog changes (`android/tools/publish-release.sh`), and old content-addressed packages remain available for installed catalogs. Publishing the Android release does not publish the website.
 
 ## Package verification
 
@@ -62,7 +68,9 @@ Dust Valley’s current package includes MCM preview: all 33 terrain binaries, o
 
 ## Runtime behavior
 
-- The catalog ships inside the APK, with an optional last-successful downloaded catalog.
+- The app checks the published catalog on launch and when it returns to the foreground (at most every 15 minutes). **↻ Updates** checks immediately. Ready games with a newer published version show **UPDATE AVAILABLE**.
+- **Download** always fetches the latest catalog first, so it installs the newest published version even if the shelf was loaded earlier. Offline, it falls back to the last known catalog.
+- The catalog bundled in the APK is only a first-launch/offline fallback. The last successfully fetched catalog is kept and used offline.
 - Downloads run one at a time while the app is open. Progress and cancellation are visible. A killed/interrupted download can be retried; it does not resume from partial bytes.
 - ZIPs are checked against their declared size and SHA-256, then extracted with traversal, duplicate-path, entry-count and expanded-size limits. A new version becomes current only after extraction and entrypoint validation succeed. Failed updates preserve the old install.
 - Each game has a stable, separate HTTPS origin under `<game>.games.anf.invalid`, served from private app storage. Saves in localStorage/IndexedDB survive package updates and removal. Uninstalling the app clears saves. There is no native JavaScript bridge or file-URL access.

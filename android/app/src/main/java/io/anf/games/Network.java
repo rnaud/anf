@@ -10,7 +10,8 @@ final class Network {
         for (int redirects = 0; redirects < 6; redirects++) {
             if (!url.getProtocol().equals("https")) throw new IOException("HTTPS required");
             HttpURLConnection c = (HttpURLConnection) url.openConnection();
-            c.setConnectTimeout(20000); c.setReadTimeout(20000); c.setInstanceFollowRedirects(false);
+            c.setConnectTimeout(20000); c.setReadTimeout(20000); c.setInstanceFollowRedirects(false); c.setUseCaches(false);
+            c.setRequestProperty("Cache-Control", "no-cache");
             c.setRequestProperty("User-Agent", "anf-games-android/0.1");
             int code = c.getResponseCode();
             if (code >= 300 && code <= 399) {
