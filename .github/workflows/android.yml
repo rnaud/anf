@@ -88,6 +88,8 @@ jobs:
         run: |
           cp android/app/build/outputs/apk/release/app-release.apk android/packages/anf-games.apk
           android/tools/publish-release.sh android/packages/anf-games.apk
+          version=$(sed -n 's/.*versionName = "\(.*\)".*/\1/p' android/app/build.gradle.kts)
+          gh release edit game-library --title "anf games for Android · v$version"
   update-games:
     if: github.event_name == 'schedule' || inputs.update_games
     runs-on: ubuntu-latest
