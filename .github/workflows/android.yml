@@ -47,17 +47,20 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Test package manifests
         run: python3 -m unittest discover -s android/tools -p 'test_*.py'
-      - name: Allow access to private game repos
-        if: github.event_name == 'workflow_dispatch'
-        env:
-          TOKEN: ${{ secrets.GAME_REPOS_TOKEN }}
-        run: |
-          if [ -n "$TOKEN" ]; then git config --global url."https://x-access-token:${TOKEN}@github.com/rnaud/".insteadOf "https://github.com/rnaud/"; else echo '::warning::GAME_REPOS_TOKEN is not set; private games (Hiraeth, OpenKart) keep their published packages.'; fi
       - name: Build downloadable games
         if: github.event_name == 'workflow_dispatch'
         # A game that fails keeps its published package; it must not block the app release.
         continue-on-error: true
-        run: python3 android/tools/package-games.py --published-catalog --changed-only --bundle-catalog
+        env:
+          TOKEN: ${{ secrets.GAME_REPOS_TOKEN }}
+        run: |
+          if [ -n "$TOKEN" ]; then
+            git config --global url."https://x-access-token:${TOKEN}@github.com/rnaud/".insteadOf "https://github.com/rnaud/"
+            python3 android/tools/package-games.py --published-catalog --changed-only --bundle-catalog
+          else
+            echo '::notice::GAME_REPOS_TOKEN is not set; private games (Hiraeth, OpenKart) keep their published packages.'
+            python3 android/tools/package-games.py --published-catalog --changed-only --bundle-catalog --skip-private
+          fi
       - name: Configure release signing
         if: inputs.publish
         env:
@@ -109,13 +112,18 @@ jobs:
           python-version: '3.12'
       - name: Test package manifests
         run: python3 -m unittest discover -s android/tools -p 'test_*.py'
-      - name: Allow access to private game repos
+      - name: Rebuild games with new commits
         env:
           TOKEN: ${{ secrets.GAME_REPOS_TOKEN }}
+        # With no token the private repos are unreadable by design, so skip them instead of failing every run.
         run: |
-          if [ -n "$TOKEN" ]; then git config --global url."https://x-access-token:${TOKEN}@github.com/rnaud/".insteadOf "https://github.com/rnaud/"; else echo '::warning::GAME_REPOS_TOKEN is not set; private games (Hiraeth, OpenKart) keep their published packages.'; fi
-      - name: Rebuild games with new commits
-        run: python3 android/tools/package-games.py --published-catalog --changed-only
+          if [ -n "$TOKEN" ]; then
+            git config --global url."https://x-access-token:${TOKEN}@github.com/rnaud/".insteadOf "https://github.com/rnaud/"
+            python3 android/tools/package-games.py --published-catalog --changed-only
+          else
+            echo '::notice::GAME_REPOS_TOKEN is not set; private games (Hiraeth, OpenKart) keep their published packages.'
+            python3 android/tools/package-games.py --published-catalog --changed-only --skip-private
+          fi
       # Runs even if one game failed: the others still ship, and the failed one keeps its old package.
       - name: Publish updated games
         if: ${{ !cancelled() }}

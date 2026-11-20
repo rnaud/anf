@@ -110,12 +110,16 @@ def main():
     p.add_argument('--bundle-catalog',action='store_true',help='Also put generated catalog into the APK assets')
     p.add_argument('--published-catalog',nargs='?',const=LIVE_CATALOG,help=f'Start from the package versions in this catalog URL or path (default: {LIVE_CATALOG})')
     p.add_argument('--changed-only',action='store_true',help='Only rebuild games whose remote HEAD differs from the catalog revision; other games keep their packages')
+    p.add_argument('--skip-private',action='store_true',help='Skip private-repo games instead of failing when no repository token is configured')
     args=p.parse_args(); args.output.mkdir(parents=True,exist_ok=True)
     catalog=json.loads(CATALOG.read_text())
     if args.published_catalog:merge_published(catalog,load_catalog(args.published_catalog))
     built,failed=[],[]
     for game in catalog['games']:
         if game['kind']!='web' or (args.only and game['id'] not in args.only):continue
+        # Without a repository token these repos are unreadable by design, not broken: keep what is published.
+        if args.skip_private and game.get('private'):
+            print(f'{game["title"]}: private repo, kept at {game.get("revision","unpublished")[:12]}',flush=True);continue
         try:
             if args.changed_only and not args.repack_existing:
                 head=remote_head(game['repo'])
